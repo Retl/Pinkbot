@@ -6,6 +6,8 @@ Project Start Date:  28 Sept. 2014
 Project Purpose: Track character data for the FoE PnP using commands issued directly from the irc.
 */
 
+include 'message.php';
+
 class Pinkbot
 {
 	//Properties
@@ -78,10 +80,16 @@ class Pinkbot
 			}
 			
 			//Parse the buffered text.
+			$ircmsg = new IRCMessage($this->buf);
 			$admincmd = $this->ParseAdminText($this->buf);
 			//echo "admincmd = '$admincmd'";
 			
 			//And then do stuff.
+			
+			if ($this->MatchCommandString($ircmsg, 'ECHO') || $this->MatchCommandString($ircmsg, 'Mirror'))
+			{
+				$this->Mirror($ircmsg);
+			}
 			
 			if (count($splitmsg = preg_split('/PING /', $this->buf)) > 1) 
 			{
@@ -112,6 +120,7 @@ class Pinkbot
 			}
 			if ($this->buf == 'quit' || $admincmd == 'QUIT') 
 			{
+				$this->Speak("Okie doki loki! Later!", $adminNick);
 				$this->Speak("QUIT :Returning to Burst Station 7. POP!");
 				break;
 			}
@@ -146,12 +155,28 @@ class Pinkbot
 		socket_write($this->sock, $result, strlen($result));
 	}
 	
-	function Emote($speakMe, $destination = '')
+	public function Emote($speakMe, $destination = '')
 	{
 		$pre = chr(1);
 		$pre .= "ACTION ";
 		$speakMe .=  chr(1);
 		$this->Speak("$pre$speakMe", $destination);
+	}
+	
+	public function Mirror($ircmsg)
+	{
+		$outmsg = $ircmsg->GetNick() .', ' .$ircmsg->GetMessage();
+		$this->Speak($outmsg, $ircmsg->GetChannel());
+	}
+	
+	public function MatchCommandString($ircmsg, $cmd)
+	{
+		$result = false;
+		if (stripos($ircmsg->GetMessage(), $cmd) == 0)
+		{
+			$result = true;
+		}
+		return $result;
 	}
 	
 	public function SearchText($pattern, $subject)
