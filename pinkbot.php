@@ -86,10 +86,12 @@ class Pinkbot
 			
 			//And then do stuff.
 			
+			/*
 			if ($this->MatchCommandString($ircmsg, 'ECHO') || $this->MatchCommandString($ircmsg, 'Mirror'))
 			{
 				$this->Mirror($ircmsg);
 			}
+			*/
 			
 			if (count($splitmsg = preg_split('/PING /', $this->buf)) > 1) 
 			{
@@ -106,10 +108,16 @@ class Pinkbot
 			{
 				$this->Speak('JOIN #ballpit-ooc');
 			}
+			if ($this->MatchCommandString($ircmsg, 'dance')) 
+			{
+				$this->Emote('does a little jig and pronks about merrily. Whee!~<3', $this->adminNick);
+			}
+			/*
 			if ($admincmd == 'dance') 
 			{
 				$this->Emote('does a little jig and pronks about merrily. Whee!~<3', $this->adminNick);
 			}
+			*/
 			if ($admincmd == 'sing') 
 			{
 				$this->Speak('PRIVMSG Retl :Greetings.'); 
@@ -120,7 +128,7 @@ class Pinkbot
 			}
 			if ($this->buf == 'quit' || $admincmd == 'QUIT') 
 			{
-				$this->Speak("Okie doki loki! Later!", $adminNick);
+				$this->Speak("Okie doki loki! Later!", $this->adminNick);
 				$this->Speak("QUIT :Returning to Burst Station 7. POP!");
 				break;
 			}
@@ -172,7 +180,7 @@ class Pinkbot
 	public function MatchCommandString($ircmsg, $cmd)
 	{
 		$result = false;
-		if (stripos($ircmsg->GetMessage(), $cmd) == 0)
+		if (stripos($ircmsg->GetMessage(), $cmd) === 0)
 		{
 			$result = true;
 		}

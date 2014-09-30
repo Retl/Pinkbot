@@ -29,8 +29,11 @@ class IRCMessage
 			
 			
 			//echo strpos($this->msgType, 'PRIVMSG') != false;
+			/*
 			echo count($this->storage) .'\n';
-			echo (strpos($this->msgType, 'PRIVMSG') !== false) .'\n';
+			$d = (strpos($this->msgType, 'PRIVMSG') !== false);
+			echo $d .'\n';
+			*/
 			
 			if (count($this->storage) > 1 && strpos($this->msgType, 'PRIVMSG') !== false)
 			{
