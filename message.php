@@ -40,7 +40,7 @@ class IRCMessage
 				$this->usermask = substr($this->storage[0], 1);
 				$this->channel = $this->storage[2];
 				//We have to take all of the remaining arguments back into one string, and trim the preceding colon.
-				$this->cmd = $this->storage[3];
+				$this->cmd = substr($this->storage[3], 1);
 				$this->args = array_slice($this->storage,4);
 				$this->message = substr(implode(' ', array_slice($this->storage,3)), 1);
 
@@ -87,7 +87,7 @@ class IRCMessage
 	{
 		return $this->msgType;
 	}
-	public function GetCMD()
+	public function GetCommand()
 	{
 		return $this->cmd;
 	}

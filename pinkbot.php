@@ -86,13 +86,6 @@ class Pinkbot
 			
 			//And then do stuff.
 			
-			/*
-			if ($this->MatchCommandString($ircmsg, 'ECHO') || $this->MatchCommandString($ircmsg, 'Mirror'))
-			{
-				$this->Mirror($ircmsg);
-			}
-			*/
-			
 			if (count($splitmsg = preg_split('/PING /', $this->buf)) > 1) 
 			{
 				$pongmsg = "PONG $splitmsg[1]\n";
@@ -100,17 +93,25 @@ class Pinkbot
 				//socket_write($this->sock, $pongmsg, strlen($pongmsg));
 				//$this->Speak("Speaking now.");
 			}
-			if (count($splitmsg = preg_split('/SAY /', $admincmd)) > 1)
+			if ($ircmsg->GetNick() === $this->adminNick && $this->MatchCommandString($ircmsg, 'SAY'))
 			{
-				$this->Speak($splitmsg[1]);
+				$this->Speak($ircmsg->GetMessage());
 			}
-			if ($admincmd == '@@@join ballpit-ooc') 
+			if ($this->MatchCommandString($ircmsg, 'JOIN')) 
 			{
-				$this->Speak('JOIN #ballpit-ooc');
+				/*
+				$joinstring = substr($ircmsg->GetMessage(), 5);
+				$this->Speak("JOIN $joinstring");
+				*/
+				$this->Speak($ircmsg->GetMessage());
 			}
-			if ($this->MatchCommandString($ircmsg, 'dance')) 
+			if ($this->MatchCommandString($ircmsg, 'ECHO') || $this->MatchCommandString($ircmsg, 'Mirror'))
 			{
-				$this->Emote('does a little jig and pronks about merrily. Whee!~<3', $this->adminNick);
+				$this->Mirror($ircmsg);
+			}
+			if ($this->MatchCommandString($ircmsg, 'DANCE')) 
+			{
+				$this->ReplyEmote($ircmsg, 'does a little jig and pronks about merrily. Whee!~<3');
 			}
 			/*
 			if ($admincmd == 'dance') 
@@ -118,18 +119,39 @@ class Pinkbot
 				$this->Emote('does a little jig and pronks about merrily. Whee!~<3', $this->adminNick);
 			}
 			*/
-			if ($admincmd == 'sing') 
+			if ($this->MatchCommandString($ircmsg, 'SING'))
 			{
-				$this->Speak('PRIVMSG Retl :Greetings.'); 
-				$this->Speak("PRIVMSG $this->adminNick :Hello!");
-				$this->Speak('Hi');
-				$this->Speak('squeakysqueakings!', 'Retl');
-				$this->Speak('When I was a little filly and the Sun was going Do~wn~', $this->adminNick);
+				$this->Reply($ircmsg, 'When I was a little filly and the Sun was going Do~wn~');
 			}
-			if ($this->buf == 'quit' || $admincmd == 'QUIT') 
+			
+			if ($this->MatchCommandString($ircmsg, 'HI'))
 			{
-				$this->Speak("Okie doki loki! Later!", $this->adminNick);
-				$this->Speak("QUIT :Returning to Burst Station 7. POP!");
+				$this->Reply($ircmsg, "Hiiii there~! Let's play!");
+			}
+			
+			//Dieroller.
+			if($this->MatchCommandStringRegexp($ircmsg, '/[0-9]*[dD][0-9]*/'))
+			{
+				//Consider adding a variant or argument that allows for exploding rolls?
+				$explodedInput = explode("D", strtoupper($ircmsg->GetCommand()));
+				$numDie = $explodedInput[0];
+				$numSides = $explodedInput[1];
+				$roll = [];
+				$sum = 0;
+				
+				for ($temp = $numDie; $temp > 0; $temp--)
+				{
+					$currentRoll = rand(1, $numSides);
+					$roll[] = $currentRoll;
+					$sum += $currentRoll;
+				}
+				
+				$this->Reply($ircmsg, $ircmsg->GetCommand() .": $sum = [" .implode(" + ", $roll) ."]");
+			}
+			if ($ircmsg->GetNick() === $this->adminNick && $this->MatchCommandString($ircmsg, 'QUIT')) 
+			{
+				$this->Reply($ircmsg, "Okie doki loki! Later!");
+				$this->Quit();
 				break;
 			}
 			if ($this->buf == 'shutdown') 
@@ -165,22 +187,61 @@ class Pinkbot
 	
 	public function Emote($speakMe, $destination = '')
 	{
+		//This whole sandwiching thing could be made into its own method, as we also use it in EmoteReply.
 		$pre = chr(1);
 		$pre .= "ACTION ";
 		$speakMe .=  chr(1);
 		$this->Speak("$pre$speakMe", $destination);
 	}
 	
+	public function Reply($ircmsg, $response)
+	{
+		if ($ircmsg->GetChannel() === $this->nick)
+		{
+			//The private message to me, so I would see the channel as being my own nick.
+			//Reply with the speaker's nick as the channel.
+			$this->Speak($response, $ircmsg->GetNick());
+		}
+		else
+		{
+			$this->Speak($ircmsg->GetNick() .', ' .$response, $ircmsg->GetChannel());
+		}
+	}
+	
+	public function ReplyEmote($ircmsg, $response)
+	{
+		$pre = chr(1);
+		$pre .= "ACTION ";
+		$response .=  chr(1);
+		$this->Reply($ircmsg, "$pre$response");
+	}
+	
+	public function Quit()
+	{
+		$this->Speak("QUIT :Returning to Burst Station " .rand(1,7) .". >POP!<");
+	}
+	
 	public function Mirror($ircmsg)
 	{
-		$outmsg = $ircmsg->GetNick() .', ' .$ircmsg->GetMessage();
-		$this->Speak($outmsg, $ircmsg->GetChannel());
+		$this->Reply($ircmsg, $ircmsg->GetMessage());
 	}
 	
 	public function MatchCommandString($ircmsg, $cmd)
 	{
 		$result = false;
-		if (stripos($ircmsg->GetMessage(), $cmd) === 0)
+		if (strtoupper($ircmsg->GetCommand()) === strtoupper($cmd))
+		{
+			$result = true;
+		}
+		return $result;
+	}
+	
+	public function MatchCommandStringRegexp($ircmsg, $pattern)
+	{
+		$result = false;
+		$arr = preg_split($pattern, $ircmsg->GetMessage());
+		$c = count($arr);
+		if ($c > 1)
 		{
 			$result = true;
 		}
@@ -189,7 +250,7 @@ class Pinkbot
 	
 	public function SearchText($pattern, $subject)
 	{
-		$result = '';		
+		$result = '';
 		$arr = preg_split($pattern, $subject);
 		$c = count($arr);
 		if ($c >= 2)
