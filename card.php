@@ -12,7 +12,35 @@ class Card
 	{
 		$this->suite = $theSuite;
 		$this->value = $theValue;
-		$this->name = substr($theSuite,0,1) .$theValue;
+		
+		$firstChar = substr($theSuite,0,1);
+		
+		//Oops! Seems like this text doesn't display well, but if you have something that can handle it, just uncomment this block to get it back.
+		/*
+		switch ($this->suite)
+		{
+			case "Club": 
+			$firstChar = '♣';
+			break;
+			
+			case "Diamond": 
+			$firstChar = '♦';
+			break;
+			
+			case "Heart": 
+			$firstChar = '♥';
+			break;
+			
+			case "Spade": 
+			$firstChar = '♠';
+			break;
+			
+			default:
+			break;
+		}
+		*/
+		
+		$this->name = $firstChar .$theValue;
 	}
 	
 	public function GetName()
@@ -29,6 +57,11 @@ class Card
 	{
 		return $this->suite;
 	}
+	
+	public function __toString()
+	{
+		return $this->GetName();
+	}
 }
 
 class Deck
@@ -44,7 +77,7 @@ class Deck
 		//Shuffles the deck automatically.
 	}
 	
-	public function RemoveCard($theCard)
+	public function DrawCard($theCard)
 	{
 		//Remove a specific card from the deck and return it as the result.
 		return array_splice($this->contents, $theCard, 1);
@@ -57,7 +90,7 @@ class Deck
 		for (; $numCards > 0 && $this->Count() > 0; $numCards--)
 		{
 			$randIndex = rand(0, $this->Count() - 1);
-			$theDeal[] = $this->RemoveCard($randIndex);
+			$theDeal[] = $this->DrawCard($randIndex);
 		}
 		return $theDeal;
 	}
@@ -68,21 +101,62 @@ class Deck
 		$this->contents[] = $theCard;
 	}
 	
+	public function GetCard($theCard)
+	{
+		//Gets a reference to a specific card at an index.
+		return $this->contents[$theCard];
+	}
+	
 	public function Count()
 	{
 		return count($this->contents);
+	}
+	
+	public function __toString()
+	{
+		$result = '';
+		$cardList = [];
+		for ($i = 0; $i < $this->Count(); $i++)
+		{
+			$cardList[] = $this->GetCard($i)->GetName();
+		}
+		
+		$result = implode(' ', $cardList);
+		return $result;
 	}
 }
 
 class DefaultDeck extends Deck
 {
+	//The default deck is the usual 52 card French deck.
 	public function __construct()
 	{
-		$this->AddCard(new Card('Heart', 10));
-		$this->AddCard(new Card('Spade', 10));
-		$this->AddCard(new Card('Diamond', 10));
-		$this->AddCard(new Card('Clubs', 10));
-		$this->AddCard(new Card('Heart', 7));
+		for ($i = 0; $i < 4; $i++)
+		{
+			switch ($i)
+			{
+				case 0: 
+				$tempSuite = "Club";
+				break;
+				
+				case 1: 
+				$tempSuite = "Diamond";
+				break;
+				
+				case 2: 
+				$tempSuite = "Heart";
+				break;
+				
+				case 3: 
+				$tempSuite = "Spade";
+				break;
+			}
+			
+			for ($j = 1; $j < 14; $j++)
+			{
+				$this->AddCard(new Card($tempSuite, $j));
+			}
+		}
 		//parent::__construct();
 	}
 }
