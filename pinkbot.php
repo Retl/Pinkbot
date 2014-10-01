@@ -82,6 +82,10 @@ class Pinkbot
 			//Parse the buffered text.
 			$ircmsg = new IRCMessage($this->buf);
 			$admincmd = $this->ParseAdminText($this->buf);
+			
+			//Display the buffer in the console window.
+			echo "$this->buf\n";
+			
 			//echo "admincmd = '$admincmd'";
 			
 			//And then do stuff.
@@ -159,7 +163,6 @@ class Pinkbot
 				socket_close($this->sock);
 				break;
 			}
-			echo "$this->buf\n";
 			
 		}
 		socket_close($this->sock);
@@ -183,6 +186,14 @@ class Pinkbot
 		echo "$result";
 		
 		socket_write($this->sock, $result, strlen($result));
+	}
+	
+	public function QueenWhiskey($ircmsg)
+	{
+		$whiskeyReplies = ["ALL HAIL QUEEN WHISKEY!"];
+		$whiskeyReplies[] = "No thanks, I'm good.";
+		$whiskeyReplies[] = "No mixing. Wild Pegasus Only. FINAL DESTINATION.";
+		$this->Reply($ircmsg, array_rand());
 	}
 	
 	public function Emote($speakMe, $destination = '')

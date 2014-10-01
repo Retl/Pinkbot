@@ -74,7 +74,7 @@ class Deck
 	
 	public function Shuffle()
 	{
-		//Shuffles the deck automatically.
+		shuffle($this->contents);
 	}
 	
 	public function DrawCard($theCard)
@@ -83,7 +83,7 @@ class Deck
 		return array_splice($this->contents, $theCard, 1);
 	}
 	
-	public function Deal($numCards)
+	public function Deal($numCards = 1)
 	{
 		//If there are enough cards in the deck, deal $numCards out of our deck and return them.
 		$theDeal = [];
@@ -157,6 +157,7 @@ class DefaultDeck extends Deck
 				$this->AddCard(new Card($tempSuite, $j));
 			}
 		}
+		$this->Shuffle();
 		//parent::__construct();
 	}
 }
