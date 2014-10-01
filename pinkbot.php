@@ -130,7 +130,7 @@ class Pinkbot
 			}
 			
 			//Dieroller.
-			if($this->MatchCommandStringRegexp($ircmsg, '/[0-9]*[dD][0-9]*/'))
+			if($this->MatchCommandStringRegexp($ircmsg, '/^\d+[dD]\d+/'))
 			{
 				//Consider adding a variant or argument that allows for exploding rolls?
 				$explodedInput = explode("D", strtoupper($ircmsg->GetCommand()));
