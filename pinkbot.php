@@ -101,6 +101,11 @@ class Pinkbot
 			{
 				$this->Speak($ircmsg->GetMessage());
 			}
+			//Help command.
+			if ($this->MatchCommandString($ircmsg, 'HELP')) 
+			{
+				$this->Help($ircmsg);
+			}
 			if ($this->MatchCommandString($ircmsg, 'JOIN')) 
 			{
 				/*
@@ -188,14 +193,6 @@ class Pinkbot
 		socket_write($this->sock, $result, strlen($result));
 	}
 	
-	public function QueenWhiskey($ircmsg)
-	{
-		$whiskeyReplies = ["ALL HAIL QUEEN WHISKEY!"];
-		$whiskeyReplies[] = "No thanks, I'm good.";
-		$whiskeyReplies[] = "No mixing. Wild Pegasus Only. FINAL DESTINATION.";
-		$this->Reply($ircmsg, array_rand());
-	}
-	
 	public function Emote($speakMe, $destination = '')
 	{
 		//This whole sandwiching thing could be made into its own method, as we also use it in EmoteReply.
@@ -224,7 +221,24 @@ class Pinkbot
 		$pre = chr(1);
 		$pre .= "ACTION ";
 		$response .=  chr(1);
-		$this->Reply($ircmsg, "$pre$response");
+		
+		//Rather than just passing it on to reply, we do our own checks here, and ignore the username portion in the reply. 
+		if ($ircmsg->GetChannel() === $this->nick)
+		{
+			//The private message to me, so I would see the channel as being my own nick.
+			//Reply with the speaker's nick as the channel.
+			$this->Speak("$pre$response", $ircmsg->GetNick());
+		}
+		else
+		{
+			$this->Speak("$pre$response", $ircmsg->GetChannel());
+		}
+	}
+	
+	public function Help($ircmsg)
+	{
+		$help = "My available commands are: Dieroll (Format: #d#), Dance, Hi, Join (Join #NameOfChannel), Sing, and QUIT (Admin Only).";
+		$this->Reply($ircmsg, $help);
 	}
 	
 	public function Quit()
@@ -235,6 +249,14 @@ class Pinkbot
 	public function Mirror($ircmsg)
 	{
 		$this->Reply($ircmsg, $ircmsg->GetMessage());
+	}
+	
+	public function QueenWhiskey($ircmsg)
+	{
+		$whiskeyReplies = ["ALL HAIL QUEEN WHISKEY!"];
+		$whiskeyReplies[] = "No thanks, I'm good.";
+		$whiskeyReplies[] = "No mixing. Wild Pegasus Only. FINAL DESTINATION.";
+		$this->Reply($ircmsg, array_rand($whiskeyReplies));
 	}
 	
 	public function MatchCommandString($ircmsg, $cmd)
