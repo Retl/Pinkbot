@@ -7,6 +7,7 @@ class Blackjack
 	private $players; //All players participating. They should have specific nicks and their own hands.
 	private $house; //Kinda like a special case of player which refers the one running the game.
 	private $deck;
+	private $gameOver = false;
 	const BUSTLIMIT = 21;
 	const HIGHBONUS = 10;
 	const TESTING = true;
@@ -32,31 +33,36 @@ class Blackjack
 	
 	public function Hit($player)
 	{
-		$busted = $this->IsBusted($player->GetHand());
-		if (!$player->IsTurnOver() && !$busted)
+		if (!$this->IsGameOver())
 		{
-			$player->GetHand()->AddCard($this->deck->DrawCard());
-			$player->SetTurnOver(true);
-		}
-		
-		if ($busted)
-		{
-			$player->SetPlaying(false);
-		}
-		else
-		{
-			$player->SetPlaying(true);
-		}
-		
-		$this->AdvanceIfRoundOver();
-		
+			$busted = $this->IsBusted($player->GetHand());
+			if (!$player->IsTurnOver() && !$busted)
+			{
+				$player->GetHand()->AddCard($this->deck->DrawCard());
+				$player->SetTurnOver(true);
+			}
+			
+			if ($busted)
+			{
+				$player->SetPlaying(false);
+			}
+			else
+			{
+				$player->SetPlaying(true);
+			}
+			
+			$this->AdvanceIfRoundOver();
+		}		
 	}
 	
 	public function Stay($player)
 	{
-		$player->SetTurnOver(true);
-		$player->SetPlaying(false);
-		$this->AdvanceIfRoundOver();
+		if (!$this->IsGameOver())
+		{
+			$player->SetTurnOver(true);
+			$player->SetPlaying(false);
+			$this->AdvanceIfRoundOver();
+		}		
 	}
 	
 	public function IsBusted($hand)
@@ -69,12 +75,11 @@ class Blackjack
 		return $result;
 	}
 	
-	public function CalculateScore($hand, $useHigh = false)
+	public function CalculateScore($hand, $useHigh = true)
 	{
 		$result = 0;
 		for ($i = 0; $i < $hand->Count(); $i++)
 		{
-			//WARNING: The $hand will make $cur expect an array if you use. "$cur = $hand->GetCard($i);" DON'T DO THAT.
 			$cur = $hand->GetCard($i);
 			if (!$cur)
 			{
@@ -91,7 +96,7 @@ class Blackjack
 				}
 				else
 				{
-					if ($result + $cur > $this::BUSTLIMIT)
+					if ($result + $cur->GetValue() > $this::BUSTLIMIT)
 					{
 						//If taking the high would make you bust, take the low.
 						$result += $cur->GetValue();
@@ -105,7 +110,14 @@ class Blackjack
 			}
 			else
 			{
-				$result += $cur->GetValue();
+				$temp = $cur->GetValue();
+				
+				//Face cards other than Ace are all worth 10 points.
+				if ($temp > 10)
+				{
+					$temp = 10;
+				}
+				$result += $temp;
 			}
 		}
 		//echo $result ."-";
@@ -167,6 +179,11 @@ class Blackjack
 		}
 		return $result;
 	}
+		
+	public function IsGameOver()
+	{
+		return $this->gameOver;
+	}
 	
 	public function StartRound()
 	{
@@ -220,6 +237,8 @@ class Blackjack
 	
 	public function EndSession()
 	{
+		$this->gameOver = true;
+		$result = "-----{GAME OVER}-----\n";
 		$this->TestingEcho("-----{GAME OVER}-----\n");
 		
 		$houseHand = $this->house->GetHand();
@@ -227,11 +246,11 @@ class Blackjack
 		$houseScore = $this->CalculateScore($houseHand);
 		if ($houseScore > $this::BUSTLIMIT)
 		{
-			$this->TestingEcho("$houseNick went bust with a score of $houseScore [$houseHand]\n");
+			$result .= $this->TestingEcho("$houseNick went bust with a score of $houseScore [$houseHand]\n");
 		}
 		else
 		{
-			$this->TestingEcho("$houseNick scored $houseScore [$houseHand]\n");
+			$result .= $this->TestingEcho("$houseNick scored $houseScore [$houseHand]\n");
 		}
 		
 		for ($i = 0; $i < count($this->players); $i++)
@@ -241,18 +260,20 @@ class Blackjack
 			$playerNick = $this->players[$i]->GetNick();
 			if ($playerScore > $this::BUSTLIMIT)
 			{
-				$this->TestingEcho("$playerNick went bust with a score of $playerScore [$playerHand]\n");
+				$result .= $this->TestingEcho("$playerNick went bust with a score of $playerScore [$playerHand]\n");
 			}
 			else
 			{
-				$this->TestingEcho("$playerNick scored $playerScore [$playerHand]\n");
+				$result .= $this->TestingEcho("$playerNick scored $playerScore [$playerHand]\n");
 			}
-		}	
+		}
+		return $result;
 	}
 	
 	public function TestingEcho($out)
 	{
 		if ($this::TESTING) {echo $out;}
+		return $out;
 	}
 }
 

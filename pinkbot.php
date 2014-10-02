@@ -7,6 +7,8 @@ Project Purpose: Track character data for the FoE PnP using commands issued dire
 */
 
 include 'message.php';
+include 'card.php';
+include 'blackjack.php';
 
 class Pinkbot
 {
@@ -18,6 +20,8 @@ class Pinkbot
 	public $address;
 	public $port;
 	public $sock;
+	
+	public $gameData;
 	
 	function __construct()
 	{
@@ -106,6 +110,10 @@ class Pinkbot
 			{
 				$this->Help($ircmsg);
 			}
+			if ($this->MatchCommandString($ircmsg, 'Dice'))
+			{
+				$this->Reply($ircmsg, "Rolling dice is easy! Just tell me how many you want and how many sides they should have. Try \"1d20\".");
+			}
 			if ($this->MatchCommandString($ircmsg, 'JOIN')) 
 			{
 				/*
@@ -139,7 +147,75 @@ class Pinkbot
 			}
 			if ($this->MatchCommandString($ircmsg, 'Whiskey'))
 			{
-				QueenWhiskey($ircmsg);
+				$this->QueenWhiskey($ircmsg);
+			}
+			if ($this->MatchCommandString($ircmsg, 'Blackjack'))
+			{
+				$house = $this->gameData['house'.$ircmsg->GetChannel().$ircmsg->GetNick()] = new Player("House");
+				$player = $this->gameData['player'.$ircmsg->GetChannel().$ircmsg->GetNick()] = new Player($ircmsg->GetNick());
+				$game = $this->gameData['blackJack'.$ircmsg->GetChannel().$ircmsg->GetNick()] = new Blackjack($ircmsg->GetChannel(), [$player], $house);
+				
+				/*
+				$house = new Player("House");
+				$player = new Player($ircmsg->GetNick());
+				$testBJ = new Blackjack($ircmsg->GetChannel(), [$testPlayer], $House);
+				*/
+				
+				$whiskeyReplies = ["I'll make your own game! With Blackjack! And Hookers! ...Actually, forget the hookers!"];
+				$whiskeyReplies[] = "Yay, a game! I love games! Let's play!";
+				$whiskeyReplies[] = "Okie doki loki! One round of Blackjack on the house coming right up!";
+				$this->Reply($ircmsg, $whiskeyReplies[array_rand($whiskeyReplies)]);
+				
+				$game->StartSession();
+				$this->Reply($ircmsg, "Your hand: [" .$player->GetHand().']');
+				$this->Reply($ircmsg, $house->GetNick() ."'s hand: [" .$house->GetHand().']');
+				
+			}
+			if ($this->MatchCommandString($ircmsg, 'Hit'))
+			{
+				$house = $this->gameData['house'.$ircmsg->GetChannel().$ircmsg->GetNick()];
+				$game = $this->gameData['blackJack'.$ircmsg->GetChannel().$ircmsg->GetNick()];
+				$player = $this->gameData['player'.$ircmsg->GetChannel().$ircmsg->GetNick()];
+				if ($house === null || $player === null || $game === null)
+				{
+					$this->Reply($ircmsg, "We're not playing anything yet, silly! If you wanna play Blackjack say BLACKJACK!");
+				}
+				else
+				{
+					$game->Hit($player);
+					if ($game->IsGameOver())
+					{
+						$this->Reply($ircmsg, $game->EndSession());
+					}
+					else
+					{
+						$this->Reply($ircmsg, "Your hand: [" .$player->GetHand().']');
+						$this->Reply($ircmsg, $house->GetNick() ."'s hand: [" .$house->GetHand().']');
+					}
+				}
+			}
+			if ($this->MatchCommandString($ircmsg, 'Stay'))
+			{
+				$house = $this->gameData['house'.$ircmsg->GetChannel().$ircmsg->GetNick()];
+				$game = $this->gameData['blackJack'.$ircmsg->GetChannel().$ircmsg->GetNick()];
+				$player = $this->gameData['player'.$ircmsg->GetChannel().$ircmsg->GetNick()];
+				if ($house === null || $player === null || $game === null)
+				{
+					$this->Reply($ircmsg, "We're not playing anything yet, silly! If you wanna play Blackjack say BLACKJACK!");
+				}
+				else
+				{
+					$game->Stay($player);
+					if ($game->IsGameOver())
+					{
+						$this->Reply($ircmsg, $game->EndSession());
+					}
+					else
+					{
+						$this->Reply($ircmsg, "Your hand: [" .$player->GetHand().']');
+						$this->Reply($ircmsg, $house->GetNick() ."'s hand: [" .$house->GetHand().']');
+					}
+				}
 			}
 			
 			//Dieroller.
@@ -260,7 +336,25 @@ class Pinkbot
 		$whiskeyReplies = ["ALL HAIL QUEEN WHISKEY!"];
 		$whiskeyReplies[] = "No thanks, I'm good.";
 		$whiskeyReplies[] = "No mixing. Wild Pegasus Only. FINAL DESTINATION.";
-		$this->Reply($ircmsg, array_rand($whiskeyReplies));
+		$whiskeyReplies[] = "Oh rain may fall and the wind might blow, the earth could quake or clouds bury us in snow, but as bad as they are there’s one thing I know… with friends and whiskey is how I plan to goooooo~";
+		$whiskeyReplies[] = "I drink to your good health, good sir dragon.";
+		$whiskeyReplies[] = "No. That is incorrect. I am drinking. More accurately, I am approaching the state of being that is drunk.";
+		$whiskeyReplies[] = "My first drink went down like a Sparkle-Cola. :(";
+		$whiskeyReplies[] = "~Oh you shoulda just sent the whiskey~";
+		$whiskeyReplies[] = "~So best send me a whiskey!~";
+		$whiskeyReplies[] = "Ooooo, gimmie!";
+		$whiskeyReplies[] = "Whiskey mathematics says two shells equals three dead ponies!";
+		$whiskeyReplies[] = "Oh thank you sweet merciful whiskey for you have taken the concussive beating that comes from hanging a few feet from a firing cannon muzzle and rendered it into a nice full-body numbness.";
+		$whiskeyReplies[] = "Sunshine and whiskey! -I mean, Sunshine and Rainbows!";
+		$whiskeyReplies[] = "We used all of it trying to sterilize you and the equipment anyway.";
+		$whiskeyReplies[] = "so, which stable did you grow up in?";
+		$whiskeyReplies[] = "My head is going around and around and whee~!";
+		$whiskeyReplies[] = "No, but we do have Scotch Tape! ...We're gonna need a bigger bottle.";
+		$whiskeyReplies[] = "I guess so that I wouldn’t be lonely any more. Have a life like I did before the war.";
+		$whiskeyReplies[] = "Aren't you a little young for that? I'm telling MoM!";
+		$whiskeyReplies[] = "Can you mix it with a lollipop? Mmmmm~<3";
+
+		$this->Reply($ircmsg, $whiskeyReplies[array_rand($whiskeyReplies)]);
 	}
 	
 	public function MatchCommandString($ircmsg, $cmd)
