@@ -101,20 +101,6 @@ testString(':Nick!UserID@dummy.interweb NOTICE Recreational_Pinkbot :*** End of 
 testString('no');
 testString(':discord.canternet.org NOTICE Auth :*** Found your hostname (71-92-44-59.dhcp.athn.ga.charter.com) -- cached');
 
-$acard = new Card('Diamond', 1);
-$theDeck = new DefaultDeck();
-echo 'The deck contains ' .$theDeck->Count() ." cards. \n";
-echo "The deck's cards: [$theDeck]";
-
-/*
-$theDeck->AddCard($acard);
-print_r($theDeck);
-print_r($acard);
-
-print_r($theDeck->Deal(3));
-print_r($theDeck);
-*/
-
 /*
 :NICK!USERID@HOST PRIVMSG CHANNEL :MESSAGE
 */

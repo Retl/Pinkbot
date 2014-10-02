@@ -137,6 +137,10 @@ class Pinkbot
 			{
 				$this->Reply($ircmsg, "Hiiii there~! Let's play!");
 			}
+			if ($this->MatchCommandString($ircmsg, 'Whiskey'))
+			{
+				QueenWhiskey($ircmsg);
+			}
 			
 			//Dieroller.
 			if($this->MatchCommandStringRegexp($ircmsg, '/^\d+[dD]\d+/'))

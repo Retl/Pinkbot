@@ -40,7 +40,30 @@ class Card
 		}
 		*/
 		
-		$this->name = $firstChar .$theValue;
+		switch ($this->value)
+		{
+			case 1: 
+			$nval = 'A';
+			break;
+		
+			case 11: 
+			$nval = 'J';
+			break;
+			
+			case 12: 
+			$nval = 'Q';
+			break;
+			
+			case 13: 
+			$nval = 'K';
+			break;
+			
+			default:
+			$nval = $this->value;
+			break;
+		}
+		
+		$this->name = $firstChar .$nval;
 	}
 	
 	public function GetName()
@@ -77,10 +100,15 @@ class Deck
 		shuffle($this->contents);
 	}
 	
-	public function DrawCard($theCard)
+	public function DrawCard($theCard = 0)
 	{
 		//Remove a specific card from the deck and return it as the result.
-		return array_splice($this->contents, $theCard, 1);
+		$result = NULL;
+		if (count($this->contents) > 0)
+		{
+			$result = array_splice($this->contents, $theCard, 1)[0];
+		}
+		return $result;
 	}
 	
 	public function Deal($numCards = 1)
