@@ -199,7 +199,7 @@ class Pinkbot
 						$playerScore = $game->CalculateScore($playerHand, true);
 						if ($playerScore > $game::BUSTLIMIT) 
 						{
-							$playerScore = $game->CalculateScore($houseHand, false);
+							$playerScore = $game->CalculateScore($playerHand, false);
 						}
 						$this->Reply($ircmsg, "$playerNick scored $playerScore [$playerHand]");
 						
@@ -239,7 +239,7 @@ class Pinkbot
 						$playerScore = $game->CalculateScore($playerHand, true);
 						if ($playerScore > $game::BUSTLIMIT) 
 						{
-							$playerScore = $game->CalculateScore($houseHand, false);
+							$playerScore = $game->CalculateScore($playerHand, false);
 						}
 						$this->Reply($ircmsg, "$playerNick scored $playerScore [$playerHand]");
 						
