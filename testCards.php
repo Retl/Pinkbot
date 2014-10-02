@@ -25,10 +25,8 @@ $testPlayer = new Player("Tester1");
 $testPlayer2 = new Player("Tester2");
 $testBJ = new Blackjack('TestChannel', [$testPlayer], $testPlayer2);
 $testBJ->StartSession();
-print_r($testPlayer2);
 $testBJ->Hit($testPlayer);
-print_r($testPlayer);
-$testBJ->Hit($testPlayer);
+$testBJ->Stay($testPlayer);
 $testBJ->Stay($testPlayer);
 //print_r($testBJ);
 

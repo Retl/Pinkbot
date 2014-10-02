@@ -39,9 +39,8 @@ class Blackjack
 			if (!$player->IsTurnOver() && !$busted)
 			{
 				$player->GetHand()->AddCard($this->deck->DrawCard());
-				$player->SetTurnOver(true);
 			}
-			
+			$player->SetTurnOver(true);
 			if ($busted)
 			{
 				$player->SetPlaying(false);
@@ -68,7 +67,7 @@ class Blackjack
 	public function IsBusted($hand)
 	{
 		$result = false;
-		if ($this->CalculateScore($hand) > $this::BUSTLIMIT)
+		if ($this->CalculateScore($hand, true) > $this::BUSTLIMIT && $this->CalculateScore($hand, false) > $this::BUSTLIMIT)
 		{
 			$result = true;
 		}
@@ -182,6 +181,7 @@ class Blackjack
 		
 	public function IsGameOver()
 	{
+		$this->TestingEcho("Game's overness: [$this->gameOver]");
 		return $this->gameOver;
 	}
 	
@@ -238,33 +238,35 @@ class Blackjack
 	public function EndSession()
 	{
 		$this->gameOver = true;
-		$result = "-----{GAME OVER}-----\n";
+		$result = ["-----{GAME OVER}-----\n"];
 		$this->TestingEcho("-----{GAME OVER}-----\n");
 		
 		$houseHand = $this->house->GetHand();
 		$houseNick = $this->house->GetNick();
-		$houseScore = $this->CalculateScore($houseHand);
+		$houseScore = $this->CalculateScore($houseHand, true);
+		if ($houseScore > $this::BUSTLIMIT) {$houseScore = $this->CalculateScore($houseHand, false);}
 		if ($houseScore > $this::BUSTLIMIT)
 		{
-			$result .= $this->TestingEcho("$houseNick went bust with a score of $houseScore [$houseHand]\n");
+			$result[] = $this->TestingEcho("$houseNick went bust with a score of $houseScore [$houseHand]\n");
 		}
 		else
 		{
-			$result .= $this->TestingEcho("$houseNick scored $houseScore [$houseHand]\n");
+			$result[] = $this->TestingEcho("$houseNick scored $houseScore [$houseHand]\n");
 		}
 		
 		for ($i = 0; $i < count($this->players); $i++)
 		{
 			$playerHand = $this->players[$i]->GetHand();
-			$playerScore = $this->CalculateScore($playerHand);
+			$playerScore = $this->CalculateScore($playerHand, true);
 			$playerNick = $this->players[$i]->GetNick();
+			if ($playerScore > $this::BUSTLIMIT) {$playerScore = $this->CalculateScore($playerHand, false);}
 			if ($playerScore > $this::BUSTLIMIT)
 			{
-				$result .= $this->TestingEcho("$playerNick went bust with a score of $playerScore [$playerHand]\n");
+				$result[] = $this->TestingEcho("$playerNick went bust with a score of $playerScore [$playerHand]\n");
 			}
 			else
 			{
-				$result .= $this->TestingEcho("$playerNick scored $playerScore [$playerHand]\n");
+				$result[] = $this->TestingEcho("$playerNick scored $playerScore [$playerHand]\n");
 			}
 		}
 		return $result;

@@ -185,7 +185,33 @@ class Pinkbot
 					$game->Hit($player);
 					if ($game->IsGameOver())
 					{
-						$this->Reply($ircmsg, $game->EndSession());
+						//$endingMsgs = $game->EndSession();
+						/*
+						for ($i = 0; $i < count($endingMsgs); $i++)
+						{
+							$this->Reply($ircmsg, $endingMsgs[$i]);
+						}
+						*/
+						
+						//From this marker...
+						$playerNick = $player->GetNick();
+						$playerHand = $player->GetHand();
+						$playerScore = $game->CalculateScore($playerHand, true);
+						if ($playerScore > $game::BUSTLIMIT) 
+						{
+							$playerScore = $game->CalculateScore($houseHand, false);
+						}
+						$this->Reply($ircmsg, "$playerNick scored $playerScore [$playerHand]");
+						
+						$houseNick = $house->GetNick();
+						$houseHand = $house->GetHand();
+						$houseScore = $game->CalculateScore($houseHand, true);
+						if ($houseScore > $game::BUSTLIMIT) 
+						{
+							$houseScore = $game->CalculateScore($houseHand, false);
+						}
+						$this->Reply($ircmsg, "$houseNick scored $houseScore [$houseHand]");
+						// ...To this marker, we have to do a lot of repetitive crap in Stay. Refactor this.
 					}
 					else
 					{
@@ -208,7 +234,23 @@ class Pinkbot
 					$game->Stay($player);
 					if ($game->IsGameOver())
 					{
-						$this->Reply($ircmsg, $game->EndSession());
+						$playerNick = $player->GetNick();
+						$playerHand = $player->GetHand();
+						$playerScore = $game->CalculateScore($playerHand, true);
+						if ($playerScore > $game::BUSTLIMIT) 
+						{
+							$playerScore = $game->CalculateScore($houseHand, false);
+						}
+						$this->Reply($ircmsg, "$playerNick scored $playerScore [$playerHand]");
+						
+						$houseNick = $house->GetNick();
+						$houseHand = $house->GetHand();
+						$houseScore = $game->CalculateScore($houseHand, true);
+						if ($houseScore > $game::BUSTLIMIT) 
+						{
+							$houseScore = $game->CalculateScore($houseHand, false);
+						}
+						$this->Reply($ircmsg, "$houseNick scored $houseScore [$houseHand]");
 					}
 					else
 					{
@@ -317,7 +359,7 @@ class Pinkbot
 	
 	public function Help($ircmsg)
 	{
-		$help = "My available commands are: Dieroll (Format: #d#), Dance, Hi, Join (Join #NameOfChannel), Sing, and QUIT (Admin Only).";
+		$help = "My available commands are: Dieroll (Format: #d#), Dance, Hi, Join (Join #NameOfChannel), Sing, Whiskey, and QUIT (Admin Only).";
 		$this->Reply($ircmsg, $help);
 	}
 	
@@ -336,7 +378,7 @@ class Pinkbot
 		$whiskeyReplies = ["ALL HAIL QUEEN WHISKEY!"];
 		$whiskeyReplies[] = "No thanks, I'm good.";
 		$whiskeyReplies[] = "No mixing. Wild Pegasus Only. FINAL DESTINATION.";
-		$whiskeyReplies[] = "Oh rain may fall and the wind might blow, the earth could quake or clouds bury us in snow, but as bad as they are there’s one thing I know… with friends and whiskey is how I plan to goooooo~";
+		$whiskeyReplies[] = "Oh rain may fall and the wind might blow, the earth could quake or clouds bury us in snow, but as bad as they are there's one thing I know... with friends and whiskey is how I plan to goooooo~";
 		$whiskeyReplies[] = "I drink to your good health, good sir dragon.";
 		$whiskeyReplies[] = "No. That is incorrect. I am drinking. More accurately, I am approaching the state of being that is drunk.";
 		$whiskeyReplies[] = "My first drink went down like a Sparkle-Cola. :(";
@@ -350,7 +392,7 @@ class Pinkbot
 		$whiskeyReplies[] = "so, which stable did you grow up in?";
 		$whiskeyReplies[] = "My head is going around and around and whee~!";
 		$whiskeyReplies[] = "No, but we do have Scotch Tape! ...We're gonna need a bigger bottle.";
-		$whiskeyReplies[] = "I guess so that I wouldn’t be lonely any more. Have a life like I did before the war.";
+		$whiskeyReplies[] = "I guess so that I wouldn't be lonely any more. Have a life like I did before the war.";
 		$whiskeyReplies[] = "Aren't you a little young for that? I'm telling MoM!";
 		$whiskeyReplies[] = "Can you mix it with a lollipop? Mmmmm~<3";
 
