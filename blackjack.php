@@ -8,10 +8,11 @@ class Blackjack
 	private $house; //Kinda like a special case of player which refers the one running the game.
 	private $deck;
 	private $gameOver = false;
-	const BUSTLIMIT = 21;
-	const HIGHBONUS = 10;
-	const TESTING = true;
-	const HOUSEMINIMUM = 17;
+	const BUSTLIMIT = 21; //Change to configure what score is the highest winning hand.
+	const HIGHBONUS = 10; //Change to configure how many additional points an Ace can add to a hand.
+	const HOUSEMINIMUM = 17; //Change to force the house to play to a different minimum score.
+	
+	const TESTING = t; //Change to toggle the display of testing-related echo messages.
 	
 	
 	public function __construct($theSID, $thePlayers = [], $theHouse)
@@ -58,9 +59,18 @@ class Blackjack
 	
 	public function Stay($player)
 	{
+		$player->SetTurnOver(true);
+		$busted = $this->IsBusted($player->GetHand());
+		if ($busted)
+		{
+			$player->SetPlaying(false);
+		}
+		else
+		{
+			$player->SetPlaying(true);
+		}
 		if (!$this->IsGameOver())
 		{
-			$player->SetTurnOver(true);
 			$player->SetPlaying(false);
 			$this->AdvanceIfRoundOver();
 		}		
