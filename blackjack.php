@@ -41,6 +41,8 @@ class Blackjack
 				$player->GetHand()->AddCard($this->deck->DrawCard());
 			}
 			$player->SetTurnOver(true);
+			//Now that you've got a new card, check again to see if busted.
+			$busted = $this->IsBusted($player->GetHand());
 			if ($busted)
 			{
 				$player->SetPlaying(false);
