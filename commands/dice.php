@@ -25,10 +25,15 @@ class Dice extends command
 	function ConditionsMet(IRCMessage $ircmsg)
 	{
 		$result = false;
-		if(Command::MatchCommandStringRegexp($ircmsg, '/^\d+[dD]\d+/'))
+		if(Command::MatchCommandString($ircmsg, $this->name) && count($ircmsg->GetArgs()) < 1)
+		{
+			$this->bot->Reply($ircmsg, $this->Help());
+			$this->bot->Reply($ircmsg, $this->DoRoll("1d100"));
+		}
+		else if(Command::MatchCommandStringRegexp($ircmsg, '/^\d+[dD]\d+/'))
 		{
 			$result = true;
-		}		
+		}			
 		return $result;
 	}
 
@@ -37,8 +42,14 @@ class Dice extends command
 	function Act(IRCMessage $ircmsg)
 	{
 		//Consider adding a variant or argument that allows for exploding rolls?
+		return $this->DoRoll($ircmsg->GetCommand());
+		
+	}
+	
+	function DoRoll($rollString)
+	{
 		$premsg = '';
-		$explodedInput = explode("D", strtoupper($ircmsg->GetCommand()));
+		$explodedInput = explode("D", strtoupper($rollString));
 		$numDie = $explodedInput[0];
 		$numSides = $explodedInput[1];
 		$roll = [];

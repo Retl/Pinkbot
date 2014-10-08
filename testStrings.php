@@ -108,6 +108,7 @@ testString(":Brazen!Mibbit@Pony-f35sfl.ga.charter.com PRIVMSG #ballpit-ooc :2d6"
 testString(":Brazen!Mibbit@Pony-f35sfl.ga.charter.com PRIVMSG #ballpit-ooc :Recreational_Pinkbot, Help Help");
 
 testString("PING :cadance.canternet.org");
+testString(":NickServ!NickServ@canternet.org NOTICE Recreational_Pinkbot :Welcome to Canternet, Recreational_Pinkbot! Here on Canternet, we provide services to enable the registration of nicknames and channels! For details, type ☻/msg NickServ help☻ and ☻/msg ChanServ help☻.");
 
 /*
 :NICK!USERID@HOST PRIVMSG CHANNEL :MESSAGE

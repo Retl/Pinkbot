@@ -3,7 +3,7 @@ class Quit extends command
 {
 	//Properties
 	protected $name = "Quit";
-	protected $desc = "Forces the bot to disconnect from the network and shutdown immediately. Administrator only.";
+	protected $desc = "Forces the bot to disconnect from the network and shutdown immediately. Administrator only. If I am in a channel I shouldn't be in, please have an OP /kick me out. I don't mind!";
 	protected $bot;
 	
 	//Methods
@@ -44,6 +44,8 @@ class Quit extends command
 		{
 			$badguy = $ircmsg->GetNick();
 			$goodguy = $this->bot->GetAdminNick();
+			$ggemail = $this->bot->GetAdminEmail();
+			$emailmsg = "You can contact $goodguy with an email to ($ggemail).";
 			$denyList = [];
 			$denyList[] = "Um. No. Maybe when you're older. Did you mean Quiche?";
 			$denyList[] = "WARNING: Pushing that requires PARTY PINK level clearance. Ask $goodguy for assistance.";

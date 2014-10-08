@@ -20,7 +20,8 @@ class Pinkbot
 {
 	//Properties
 	public $nick;
-	public $adminNick;
+	public $adminNick; //Displayed when users try to force an admin command and fail, and checked against the nick of the user attempting a command to make sure they are the admin.
+	public $adminEmail; //This WILL be displayed if other people try to make your bot QUIT so that they know how to contact you.
 
 	public $hostname;
 	public $address;
@@ -37,6 +38,8 @@ class Pinkbot
 		echo "~~>@ $this->nick initializing. @<~~\n";
 		$this->adminNick = 'Retl';
 		echo "~~>@ $this->nick registering admin's nick. @<~~\n";
+		$this->adminEmail = 'travisuped@gmail.com';
+		echo "~~>@ $this->nick registering admin's email address. @<~~\n";
 		$this->hostname = 'irc.canternet.org';
 		echo "Hostname: '$this->hostname' \n";
 		$this->address = gethostbyname($this->hostname);
@@ -315,14 +318,23 @@ class Pinkbot
 			$pre = "PRIVMSG $destination :";
 		}
 		
-		$speakMe .= "\n";
+		$nl = "\n";
 		
-		$result = $pre;
-		$result .= $speakMe;
+		//$result = $pre;
+		//$result .= $speakMe;
 		
-		echo "$result";
+		//TODO: Consider using some combination of chunk_split and explode("\n", $outString) to make it so that all responses will be autosplit across multiple lines.
+		$speakMe = trim(chunk_split($speakMe, 400, "\n"));
+		$a = explode("\n", $speakMe);
+		foreach ($a as $mes)
+		{
+			//$this->reply($ircmsg, $mes);
+			echo "$mes\n";
+			socket_write($this->sock, $pre .$mes .$nl, strlen($pre .$mes .$nl));
+		}
 		
-		socket_write($this->sock, $result, strlen($result));
+		
+		
 	}
 	
 	public function Emote($speakMe, $destination = '')
@@ -429,8 +441,8 @@ class Pinkbot
 	
 	public function RequestNickVerification($theNick)
 	{
-		$this->Speak("ACC $theNick", NickServ);
-		$this->Speak("WHOIS $theNick", NickServ);
+		$this->Speak("ACC $theNick", 'NickServ');
+		$this->Speak("WHOIS $theNick", 'NickServ');
 		//Put an entry in a queue in the bot to wait for this ACC response. Once you get it, set its response value to correspond.
 	}
 	

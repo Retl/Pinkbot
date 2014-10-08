@@ -22,7 +22,7 @@ class Pong extends command
 	function ConditionsMet(IRCMessage $ircmsg)
 	{
 		$result = false;
-		if (Command::MatchCommandString($ircmsg, $this->name)) 
+		if ($ircmsg->GetMessageType() == "PING") 
 		{
 			$result = true;
 		}	
