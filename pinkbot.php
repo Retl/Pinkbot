@@ -11,6 +11,8 @@ include 'command.php';
 include '\commands\help.php';
 include '\commands\pong.php';
 include '\commands\whiskey.php';
+include '\commands\dice.php';
+include '\commands\quit.php';
 include 'card.php';
 include 'blackjack.php';
 
@@ -43,7 +45,8 @@ class Pinkbot
 		echo "Port: '$this->port' \n";
 		
 		//Make a dictionary of all of the commands that we'll be using.
-		$tempcmds = [new Pong($this), new Help($this), new Whiskey($this)];
+		$tempcmds = [new Pong($this), new Help($this), new Whiskey($this),
+		new Dice($this), new Quit($this)];
 		/*
 		echo "Name: " .$tempcmds[0]->GetName();
 		echo "Name: " .$tempcmds[1]->GetName();
@@ -54,7 +57,7 @@ class Pinkbot
 			$this->commandList[strtoupper($com->GetName())] = $com;
 		}
 		//print_r($this->commandList);
-		
+		arsort($this->commandList);
 		unset($tempcmds);
 		
 	}
@@ -83,6 +86,11 @@ class Pinkbot
 
 		$welcomeMessage = "NICK $this->nick\n";
 		$welcomeMessage .= "USER $this->nick 8 * : Recreational Pinkbot\n";
+		
+		//Join the usual channels...
+		$this->speak("JOIN #ballpitooc");
+		//Test the RequestNickVerification.
+		$this->RequestNickVerification("Retl");
 
 		socket_write($this->sock, $welcomeMessage, strlen($welcomeMessage));
 		
@@ -114,14 +122,12 @@ class Pinkbot
 			//echo "admincmd = '$admincmd'";
 			
 			//And then do stuff.
+			/*
 			if ($ircmsg->GetNick() === $this->adminNick && Command::MatchCommandString($ircmsg, 'SAY'))
 			{
 				$this->Speak($ircmsg->GetMessage());
 			}
-			if (Command::MatchCommandString($ircmsg, 'Dice'))
-			{
-				$this->Reply($ircmsg, "Rolling dice is easy! Just tell me how many you want and how many sides they should have. Try \"1d20\".");
-			}
+			*/
 			if (Command::MatchCommandString($ircmsg, 'JOIN')) 
 			{
 				/*
@@ -130,6 +136,7 @@ class Pinkbot
 				*/
 				$this->Speak($ircmsg->GetMessage());
 			}
+			/*
 			if (Command::MatchCommandString($ircmsg, 'ECHO') || Command::MatchCommandString($ircmsg, 'Mirror'))
 			{
 				$this->Mirror($ircmsg);
@@ -138,12 +145,14 @@ class Pinkbot
 			{
 				$this->ReplyEmote($ircmsg, 'does a little jig and pronks about merrily. Whee!~<3');
 			}
+			*/
 			/*
 			if ($admincmd == 'dance') 
 			{
 				$this->Emote('does a little jig and pronks about merrily. Whee!~<3', $this->adminNick);
 			}
 			*/
+			/*
 			if (Command::MatchCommandString($ircmsg, 'SING'))
 			{
 				$this->Reply($ircmsg, 'When I was a little filly and the Sun was going Do~wn~');
@@ -153,6 +162,7 @@ class Pinkbot
 			{
 				$this->Reply($ircmsg, "Hiiii there~! Let's play!");
 			}
+			*/
 			if (Command::MatchCommandString($ircmsg, 'Blackjack'))
 			{
 				$house = $this->gameData['house'.$ircmsg->GetChannel().$ircmsg->GetNick()] = new Player("House");
@@ -263,26 +273,6 @@ class Pinkbot
 					}
 				}
 			}
-			
-			//Dieroller.
-			if(Command::MatchCommandStringRegexp($ircmsg, '/^\d+[dD]\d+/'))
-			{
-				//Consider adding a variant or argument that allows for exploding rolls?
-				$explodedInput = explode("D", strtoupper($ircmsg->GetCommand()));
-				$numDie = $explodedInput[0];
-				$numSides = $explodedInput[1];
-				$roll = [];
-				$sum = 0;
-				
-				for ($temp = $numDie; $temp > 0; $temp--)
-				{
-					$currentRoll = rand(1, $numSides);
-					$roll[] = $currentRoll;
-					$sum += $currentRoll;
-				}
-				
-				$this->Reply($ircmsg, $ircmsg->GetCommand() .": $sum = [" .implode(" + ", $roll) ."]");
-			}
 			if ($ircmsg->GetNick() === $this->adminNick && Command::MatchCommandString($ircmsg, 'QUIT')) 
 			{
 				$this->Reply($ircmsg, "Okie doki loki! Later!");
@@ -352,7 +342,11 @@ class Pinkbot
 			//Reply with the speaker's nick as the channel.
 			$this->Speak($response, $ircmsg->GetNick());
 		}
-		else
+		else if (!$ircmsg->GetNick()) //A rare IRC command that doesn't have an obvious source is probably from the server, and doesn't need the nick reference.
+		{
+			$this->Speak($response);
+		}
+		else //Reply to a specific user.
 		{
 			$this->Speak($ircmsg->GetNick() .', ' .$response, $ircmsg->GetChannel());
 		}
@@ -433,9 +427,34 @@ class Pinkbot
 		return $this->SearchText("/$this->adminNick!.*PRIVMSG $this->nick :/", $subject);
 	}
 	
+	public function RequestNickVerification($theNick)
+	{
+		$this->Speak("ACC $theNick", NickServ);
+		$this->Speak("WHOIS $theNick", NickServ);
+		//Put an entry in a queue in the bot to wait for this ACC response. Once you get it, set its response value to correspond.
+	}
+	
+	public function SetNickVerificationLevel($theNick, $rank)
+	{
+		//If you get a response to a NickVerification Request, pair the two.
+		
+		/*
+		The answer is in the form <nick> ACC <digit>:
+		NickServ	    0 - account or user does not exist
+		NickServ	    1 - account exists but user is not logged in
+		NickServ	    2 - user is not logged in but recognized (see ACCESS)
+		NickServ	    3 - user is logged in
+		*/
+	}
+	
 	public function GetNick()
 	{
 		return $this->nick;
+	}
+	
+	public function GetAdminNick()
+	{
+		return $this->adminNick;
 	}
 	
 	//Gets a specific command object from the commandList array and returns it.
@@ -457,9 +476,9 @@ class Pinkbot
 	public function GetHelp()
 	{
 		$commandListString = '';
-		foreach ($this->commandList as $com) {$commandListString .= $com->GetName();}
-		$commandListString = substr($commandListString, -2);
-		$result = "Hello! The joint efforts of Robronco and Ministry of Morale have allowed me to help improve your super funtabulous playtime experience! My available commands are [$commandListString]. You can get help on any of those by saying 'HELP [Commandname].'";
+		foreach ($this->commandList as $com) {$commandListString .= $com->GetName() .', ';}
+		$commandListString = substr($commandListString, 0, -2);
+		$result = "Hello! The joint efforts of Robronco and Ministry of Morale have allowed me to help improve your super funtabulous playtime experience! The commands I recognize are: [$commandListString]. You can get help on any of those by saying 'HELP [Commandname].'";
 		return $result;
 	}
 	

@@ -1,10 +1,9 @@
 <?php
-//Help Command
 class Help extends command
 {
 	//Properties
 	protected $name = "Help";
-	protected $desc = "This is the command that gives help. Yay!";
+	protected $desc = "This commands gives instructions on how to use any known command and general help.";
 	protected $bot;
 	
 	//Methods

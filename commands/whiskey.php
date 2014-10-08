@@ -1,5 +1,4 @@
 <?php
-//Help Command
 class Whiskey extends command
 {
 	//Properties

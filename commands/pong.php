@@ -1,5 +1,4 @@
 <?php
-//Help Command
 class Pong extends command
 {
 	//Properties
@@ -34,7 +33,7 @@ class Pong extends command
 	//What to perform if the conditions are met.
 	function Act(IRCMessage $ircmsg)
 	{
-		$this->bot->Speak("Arbitrary.");
+		//$this->bot->Speak($ircmsg->GetCommand() ." " .$ircmsg->GetMessage());
 		return $ircmsg->GetCommand() ." " .$ircmsg->GetMessage();
 	}
 	

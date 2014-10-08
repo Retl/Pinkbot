@@ -19,6 +19,11 @@ abstract class Command
 		}		
 	}
 	
+	public function __toString()
+	{
+		return $this->GetName();
+	}
+	
 	//Check for this name as the first portion of the string before acting.
 
 	
