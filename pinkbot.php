@@ -7,6 +7,10 @@ Project Purpose: Track character data for the FoE PnP using commands issued dire
 */
 
 include 'message.php';
+include 'command.php';
+include '\commands\help.php';
+include '\commands\pong.php';
+include '\commands\whiskey.php';
 include 'card.php';
 include 'blackjack.php';
 
@@ -23,6 +27,8 @@ class Pinkbot
 	
 	public $gameData;
 	
+	public $commandList;
+	
 	function __construct()
 	{
 		$this->nick = 'Recreational_Pinkbot';
@@ -35,6 +41,21 @@ class Pinkbot
 		echo "Address: '$this->address' \n";
 		$this->port = 6667;
 		echo "Port: '$this->port' \n";
+		
+		//Make a dictionary of all of the commands that we'll be using.
+		$tempcmds = [new Pong($this), new Help($this), new Whiskey($this)];
+		/*
+		echo "Name: " .$tempcmds[0]->GetName();
+		echo "Name: " .$tempcmds[1]->GetName();
+		print_r($tempcmds);
+		*/
+		foreach($tempcmds as $com)
+		{
+			$this->commandList[strtoupper($com->GetName())] = $com;
+		}
+		//print_r($this->commandList);
+		
+		unset($tempcmds);
 		
 	}
 	
@@ -93,28 +114,15 @@ class Pinkbot
 			//echo "admincmd = '$admincmd'";
 			
 			//And then do stuff.
-			
-			if (count($splitmsg = preg_split('/PING /', $this->buf)) > 1) 
-			{
-				$pongmsg = "PONG $splitmsg[1]\n";
-				$this->Speak($pongmsg);
-				//socket_write($this->sock, $pongmsg, strlen($pongmsg));
-				//$this->Speak("Speaking now.");
-			}
-			if ($ircmsg->GetNick() === $this->adminNick && $this->MatchCommandString($ircmsg, 'SAY'))
+			if ($ircmsg->GetNick() === $this->adminNick && Command::MatchCommandString($ircmsg, 'SAY'))
 			{
 				$this->Speak($ircmsg->GetMessage());
 			}
-			//Help command.
-			if ($this->MatchCommandString($ircmsg, 'HELP')) 
-			{
-				$this->Help($ircmsg);
-			}
-			if ($this->MatchCommandString($ircmsg, 'Dice'))
+			if (Command::MatchCommandString($ircmsg, 'Dice'))
 			{
 				$this->Reply($ircmsg, "Rolling dice is easy! Just tell me how many you want and how many sides they should have. Try \"1d20\".");
 			}
-			if ($this->MatchCommandString($ircmsg, 'JOIN')) 
+			if (Command::MatchCommandString($ircmsg, 'JOIN')) 
 			{
 				/*
 				$joinstring = substr($ircmsg->GetMessage(), 5);
@@ -122,11 +130,11 @@ class Pinkbot
 				*/
 				$this->Speak($ircmsg->GetMessage());
 			}
-			if ($this->MatchCommandString($ircmsg, 'ECHO') || $this->MatchCommandString($ircmsg, 'Mirror'))
+			if (Command::MatchCommandString($ircmsg, 'ECHO') || Command::MatchCommandString($ircmsg, 'Mirror'))
 			{
 				$this->Mirror($ircmsg);
 			}
-			if ($this->MatchCommandString($ircmsg, 'DANCE')) 
+			if (Command::MatchCommandString($ircmsg, 'DANCE')) 
 			{
 				$this->ReplyEmote($ircmsg, 'does a little jig and pronks about merrily. Whee!~<3');
 			}
@@ -136,20 +144,16 @@ class Pinkbot
 				$this->Emote('does a little jig and pronks about merrily. Whee!~<3', $this->adminNick);
 			}
 			*/
-			if ($this->MatchCommandString($ircmsg, 'SING'))
+			if (Command::MatchCommandString($ircmsg, 'SING'))
 			{
 				$this->Reply($ircmsg, 'When I was a little filly and the Sun was going Do~wn~');
 			}
 			
-			if ($this->MatchCommandString($ircmsg, 'HI'))
+			if (Command::MatchCommandString($ircmsg, 'HI'))
 			{
 				$this->Reply($ircmsg, "Hiiii there~! Let's play!");
 			}
-			if ($this->MatchCommandString($ircmsg, 'Whiskey'))
-			{
-				$this->QueenWhiskey($ircmsg);
-			}
-			if ($this->MatchCommandString($ircmsg, 'Blackjack'))
+			if (Command::MatchCommandString($ircmsg, 'Blackjack'))
 			{
 				$house = $this->gameData['house'.$ircmsg->GetChannel().$ircmsg->GetNick()] = new Player("House");
 				$player = $this->gameData['player'.$ircmsg->GetChannel().$ircmsg->GetNick()] = new Player($ircmsg->GetNick());
@@ -171,7 +175,7 @@ class Pinkbot
 				$this->Reply($ircmsg, $house->GetNick() ."'s hand: [" .$house->GetHand().']');
 				
 			}
-			if ($this->MatchCommandString($ircmsg, 'Hit'))
+			if (Command::MatchCommandString($ircmsg, 'Hit'))
 			{
 				$house = $this->gameData['house'.$ircmsg->GetChannel().$ircmsg->GetNick()];
 				$game = $this->gameData['blackJack'.$ircmsg->GetChannel().$ircmsg->GetNick()];
@@ -220,7 +224,7 @@ class Pinkbot
 					}
 				}
 			}
-			if ($this->MatchCommandString($ircmsg, 'Stay'))
+			if (Command::MatchCommandString($ircmsg, 'Stay'))
 			{
 				$house = $this->gameData['house'.$ircmsg->GetChannel().$ircmsg->GetNick()];
 				$game = $this->gameData['blackJack'.$ircmsg->GetChannel().$ircmsg->GetNick()];
@@ -261,7 +265,7 @@ class Pinkbot
 			}
 			
 			//Dieroller.
-			if($this->MatchCommandStringRegexp($ircmsg, '/^\d+[dD]\d+/'))
+			if(Command::MatchCommandStringRegexp($ircmsg, '/^\d+[dD]\d+/'))
 			{
 				//Consider adding a variant or argument that allows for exploding rolls?
 				$explodedInput = explode("D", strtoupper($ircmsg->GetCommand()));
@@ -279,12 +283,28 @@ class Pinkbot
 				
 				$this->Reply($ircmsg, $ircmsg->GetCommand() .": $sum = [" .implode(" + ", $roll) ."]");
 			}
-			if ($ircmsg->GetNick() === $this->adminNick && $this->MatchCommandString($ircmsg, 'QUIT')) 
+			if ($ircmsg->GetNick() === $this->adminNick && Command::MatchCommandString($ircmsg, 'QUIT')) 
 			{
 				$this->Reply($ircmsg, "Okie doki loki! Later!");
 				$this->Quit();
 				break;
 			}
+			//Iterate through all of the known commands, check its conditions, and if its conditions are met, perform its actions.
+			foreach ($this->commandList as $currentCommand)
+			{
+				if ($currentCommand->ConditionsMet($ircmsg))
+				{
+					$outString = $currentCommand->Act($ircmsg);
+					$a = explode("\n", $outString);
+					foreach ($a as $mes)
+					{
+						$this->reply($ircmsg, $mes);
+					}
+					break;
+				}
+			}
+			
+			//Finally, check for the shutdown trigger. If this shows up, we shutdown immediately.
 			if ($this->buf == 'shutdown') 
 			{
 				socket_close($this->sock);
@@ -373,32 +393,6 @@ class Pinkbot
 		$this->Reply($ircmsg, $ircmsg->GetMessage());
 	}
 	
-	public function QueenWhiskey($ircmsg)
-	{
-		$whiskeyReplies = ["ALL HAIL QUEEN WHISKEY!"];
-		$whiskeyReplies[] = "No thanks, I'm good.";
-		$whiskeyReplies[] = "No mixing. Wild Pegasus Only. FINAL DESTINATION.";
-		$whiskeyReplies[] = "Oh rain may fall and the wind might blow, the earth could quake or clouds bury us in snow, but as bad as they are there's one thing I know... with friends and whiskey is how I plan to goooooo~";
-		$whiskeyReplies[] = "I drink to your good health, good sir dragon.";
-		$whiskeyReplies[] = "No. That is incorrect. I am drinking. More accurately, I am approaching the state of being that is drunk.";
-		$whiskeyReplies[] = "My first drink went down like a Sparkle-Cola. :(";
-		$whiskeyReplies[] = "~Oh you shoulda just sent the whiskey~";
-		$whiskeyReplies[] = "~So best send me a whiskey!~";
-		$whiskeyReplies[] = "Ooooo, gimmie!";
-		$whiskeyReplies[] = "Whiskey mathematics says two shells equals three dead ponies!";
-		$whiskeyReplies[] = "Oh thank you sweet merciful whiskey for you have taken the concussive beating that comes from hanging a few feet from a firing cannon muzzle and rendered it into a nice full-body numbness.";
-		$whiskeyReplies[] = "Sunshine and whiskey! -I mean, Sunshine and Rainbows!";
-		$whiskeyReplies[] = "We used all of it trying to sterilize you and the equipment anyway.";
-		$whiskeyReplies[] = "so, which stable did you grow up in?";
-		$whiskeyReplies[] = "My head is going around and around and whee~!";
-		$whiskeyReplies[] = "No, but we do have Scotch Tape! ...We're gonna need a bigger bottle.";
-		$whiskeyReplies[] = "I guess so that I wouldn't be lonely any more. Have a life like I did before the war.";
-		$whiskeyReplies[] = "Aren't you a little young for that? I'm telling MoM!";
-		$whiskeyReplies[] = "Can you mix it with a lollipop? Mmmmm~<3";
-
-		$this->Reply($ircmsg, $whiskeyReplies[array_rand($whiskeyReplies)]);
-	}
-	
 	public function MatchCommandString($ircmsg, $cmd)
 	{
 		$result = false;
@@ -437,6 +431,36 @@ class Pinkbot
 	public function ParseAdminText($subject)
 	{
 		return $this->SearchText("/$this->adminNick!.*PRIVMSG $this->nick :/", $subject);
+	}
+	
+	public function GetNick()
+	{
+		return $this->nick;
+	}
+	
+	//Gets a specific command object from the commandList array and returns it.
+	public function GetCommand($cmdName)
+	{
+		$cmdName = strtoupper($cmdName);
+		$result;
+		if (isset($this->commandList[$cmdName]))
+		{
+			$result = $this->commandList[$cmdName];
+		}
+		else
+		{
+			$result = NULL;
+		}
+		return $result;
+	}
+	
+	public function GetHelp()
+	{
+		$commandListString = '';
+		foreach ($this->commandList as $com) {$commandListString .= $com->GetName();}
+		$commandListString = substr($commandListString, -2);
+		$result = "Hello! The joint efforts of Robronco and Ministry of Morale have allowed me to help improve your super funtabulous playtime experience! My available commands are [$commandListString]. You can get help on any of those by saying 'HELP [Commandname].'";
+		return $result;
 	}
 	
 }

@@ -101,6 +101,14 @@ testString(':Nick!UserID@dummy.interweb NOTICE Recreational_Pinkbot :*** End of 
 testString('no');
 testString(':discord.canternet.org NOTICE Auth :*** Found your hostname (71-92-44-59.dhcp.athn.ga.charter.com) -- cached');
 
+testString(":Brazen!Mibbit@Pony-f35sfl.ga.charter.com PRIVMSG #ballpit-ooc :Recreational_Pinkbot Hi");
+testString(":Brazen!Mibbit@Pony-f35sfl.ga.charter.com PRIVMSG #ballpit-ooc :Recreational_Pinkbot: Hi");
+testString(":Brazen!Mibbit@Pony-f35sfl.ga.charter.com PRIVMSG #ballpit-ooc :Recreational_Pinkbot, Hi");
+testString(":Brazen!Mibbit@Pony-f35sfl.ga.charter.com PRIVMSG #ballpit-ooc :2d6");
+testString(":Brazen!Mibbit@Pony-f35sfl.ga.charter.com PRIVMSG #ballpit-ooc :Recreational_Pinkbot, Help Help");
+
+testString("PING :cadance.canternet.org");
+
 /*
 :NICK!USERID@HOST PRIVMSG CHANNEL :MESSAGE
 */
